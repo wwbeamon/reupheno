@@ -24,7 +24,7 @@ noonfilenames <- list.files(path="Z:/Research Data/Desert/Jornada/Bahada/Phenoca
 
 # use purrr:map to read all lists and combine with file names
 # https://clauswilke.com/blog/2016/06/13/reading-and-combining-many-tidy-data-files-in-r/
-noonfiles2 <- data_frame(filename = noonfilenames) %>% # create a data frame
+noonfiles <- data_frame(filename = noonfilenames) %>% # create a data frame
   # holding the file names
   mutate(file_contents = map(filename, ~read.csv(file.path(data_path,.), header=TRUE))) # a new data column
 
@@ -37,16 +37,16 @@ noonfiles2 <- data_frame(filename = noonfilenames) %>% # create a data frame
 
 #### brightness is a factor in some files, check where the issue is
 ## check str of all noon lists
-# noonfiles2[1,2] %>%
-# map(str)
+noonfiles[1,2] %>%
+ map(str)
 ## go to specific lists that have brightness as a factor
-# check2<- unnest(noonfiles2[1,2], cols=c(file_contents))
+ check2<- unnest(noonfiles[1,2], cols=c(file_contents))
 # check3<- unnest(noonfiles2[13,2], cols=c(file_contents))
 ####
 
 # unnest only the files which have brightness as a number. 2010 and 2013 files for cam 1 have an issue
-noon <- noonfiles2 %>%
-  filter(!filename %in% c("2010_noon_cam1.txt", "2013_noon_cam1.txt"))%>%
+noon <- noonfiles %>%
+  filter(!filename %in% c("2010_noon_cam1.txt" , "2013_noon_cam1.txt"))%>%
   unnest(., cols=c(file_contents)) 
 
 # put timestamp into POSIXct format (date/time format for R)
@@ -55,19 +55,17 @@ noon <- noon %>% # 'pipe command' which allows sequential exectution
 
 
 # save only filepath and timestamp2 for PhenoAnalyzer to read lists
-setwd("~/Desktop/OneDrive - University of Texas at El Paso/CZ_Drylands/Jornada_REU/noon_lists_test")
+setwd("C:/Users/wwbeamon/Desktop/reupheno/noon_list_phenoanalyzer")
 
-test <- noon %>%
-  tidyr::separate(filename,c("filename2","txt"),".")
-group_by(filename)%>%
+noon %>%
+   tidyr::separate(filename,c("filename2",NA),".txt", extra = "drop", fill = "right") %>%
+group_by(filename2)%>%
   select(full.path, timestamp2)%>%
-  group_walk(~write.table(.x, file= paste(.y$filename,
+  group_walk(~write.table(.x, file= paste(.y$filename2,
                                           "PhenoAnalyzer.txt",sep="_"),
                           sep =',', dec='.', row.names=FALSE, col.names=FALSE,quote=FALSE)) 
 
 
-write.table("2021_noon_cam1_PhenoAnalyzer.txt", sep=",",
-            row.names=FALSE, col.names=FALSE quote=FALSE)
 
 # save data as txt by filename using group_walk, use filename in the saved name
 # https://luisdva.github.io/rstats/export-iteratively/
