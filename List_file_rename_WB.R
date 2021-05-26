@@ -37,10 +37,10 @@ noonfiles <- data_frame(filename = noonfilenames) %>% # create a data frame
 
 #### brightness is a factor in some files, check where the issue is
 ## check str of all noon lists
-noonfiles[1,2] %>%
- map(str)
+#noonfiles[1,2] %>%
+ #map(str)
 ## go to specific lists that have brightness as a factor
- check2<- unnest(noonfiles[1,2], cols=c(file_contents))
+ #check2<- unnest(noonfiles[1,2], cols=c(file_contents))
 # check3<- unnest(noonfiles2[13,2], cols=c(file_contents))
 ####
 
@@ -51,32 +51,46 @@ noon <- noonfiles %>%
 
 # put timestamp into POSIXct format (date/time format for R)
 noon <- noon %>% # 'pipe command' which allows sequential exectution
-  mutate(timestamp2 = ymd_hms(timestamp)) 
+  mutate(timestamp2 = ymd_hms(timestamp),
+         timestamp3 = format(timestamp2, "%Y_%m%d_%H%M%S")) %>%
+  distinct()
+
+#count images
+count.images<- noon %>%
+  separate(filename, c(NA, NA, "camera"),"_", extra = "drop", fill = "left", remove = FALSE) %>%
+  mutate(date = date(timestamp2))  %>%
+  group_by(camera, date) %>%
+  #mutate(count=count(filename))
+ # count(camera, date)
+  add_tally()
+
+ggplot(count.images, aes(date,n))+
+  geom_point()+
+  facet_grid(camera~year(date), scales = "free_x")
+
+find.multpic<- count.images %>% filter(n >1)
+
+#save info on mult pics
+count.images %>%
+  select(filename, camera,date,n) %>%
+  write.csv(.,"C:/Users/wwbeamon/Desktop/reupheno/files_multpics.csv", row.names = FALSE)
 
 
 # save only filepath and timestamp2 for PhenoAnalyzer to read lists
-setwd("C:/Users/wwbeamon/Desktop/reupheno/noon_list_phenoanalyzer")
-
-noon %>%
-   tidyr::separate(filename,c("filename2",NA),".txt", extra = "drop", fill = "right") %>%
-group_by(filename2)%>%
-  select(full.path, timestamp2)%>%
-  group_walk(~write.table(.x, file= paste(.y$filename2,
-                                          "PhenoAnalyzer.txt",sep="_"),
-                          sep =',', dec='.', row.names=FALSE, col.names=FALSE,quote=FALSE)) 
-
-
-
 # save data as txt by filename using group_walk, use filename in the saved name
 # https://luisdva.github.io/rstats/export-iteratively/
 # https://community.rstudio.com/t/map-write-csv/33292/2
 # https://stackoverflow.com/questions/41233173/how-can-i-write-dplyr-groups-to-separate-files
 
+setwd("C:/Users/wwbeamon/Desktop/reupheno/noon_list_phenoanalyzer")
 
-ffp_clim %>%
-  group_by(dn_sn) %>%
-  select(Year,Month,mDay,Hour,Minutes,zm,DISPLACEMENT_HEIGHT,
-         ROUGHNESS_LENGTH,WS,MO_LENGTH,V_SIGMA,USTAR,WD) %>%
-  group_walk(~write.table(.x, file= paste("ffp_clim_online_",.y$dn_sn,
-                                          ".csv",sep=""),
-                          sep =',', dec='.', row.names=FALSE, na="-999", quote=FALSE))
+
+noon %>%
+   tidyr::separate(filename,c("filename2",NA),".txt", extra = "drop", fill = "right") %>%
+group_by(filename2)%>%
+  select(full.path, timestamp3)%>%
+  group_walk(~write.table(.x, file= paste(.y$filename2,
+                                          "PhenoAnalyzer.txt",sep="_"),
+                          sep =',', dec='.', row.names=FALSE, col.names=FALSE,quote=FALSE)) 
+
+
