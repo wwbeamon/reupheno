@@ -12,14 +12,14 @@ library(tidyr)
 
 # set working directory to SEL shared file with file lists
 
-setwd("/Volumes/SEL_Data_Archive/Research Data/Desert/Jornada/Bahada/Phenocam/TwrPhenocam/lists")
+setwd("Z:/Research Data/Desert/Jornada/Bahada/Phenocam/TwrPhenocam/lists")
 
 # list multiple files
 # create a string for the data path
-data_path <- "/Volumes/SEL_Data_Archive/Research Data/Desert/Jornada/Bahada/Phenocam/TwrPhenocam/lists"
+data_path <- "Z:/Research Data/Desert/Jornada/Bahada/Phenocam/TwrPhenocam/lists"
 
 # list all the files with file name only, not full path
-noonfilenames <- list.files(path="/Volumes/SEL_Data_Archive/Research Data/Desert/Jornada/Bahada/Phenocam/TwrPhenocam/lists",
+noonfilenames <- list.files(path="Z:/Research Data/Desert/Jornada/Bahada/Phenocam/TwrPhenocam/lists",
                             full.names=FALSE, pattern="noon")
 
 # use purrr:map to read all lists and combine with file names
@@ -30,7 +30,7 @@ noonfiles2 <- data_frame(filename = noonfilenames) %>% # create a data frame
 
 ######## ALTERNATIVE TO noonfiles2 ########
 ## currently does not work due to brightness factor/numeric problem and headers in middle of files
-# noonfiles <- list.files(path="/Volumes/SEL_Data_Archive/Research Data/Desert/Jornada/Bahada/Phenocam/TwrPhenocam/lists",
+# noonfiles <- list.files(path="Z:/Research Data/Desert/Jornada/Bahada/Phenocam/TwrPhenocam/lists",
 #                        full.names=TRUE, pattern="noon") %>%
 #   map_dfr(read.csv, .id="source")
 ##########################################
