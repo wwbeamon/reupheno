@@ -13,28 +13,29 @@ library(tidyr)
 # set working directory to SEL shared file with file lists
 
 setwd("Z:/Research Data/Desert/Jornada/Bahada/Phenocam/TwrPhenocam/lists")
+# READ ALL NOON FILES & MERGE INTO SINGEL DATA FRAME W/ FILE NAME AS COLUMN
+noonfiles <- list.files(path="Z:/Research Data/Desert/Jornada/Bahada/Phenocam/TwrPhenocam/lists",
+                        full.names=TRUE, pattern= "[0-9]{4}_noon_cam[0-9]{1}.txt") %>%
+  #  map_dfr(read.csv, .id="source") %>% 
+  map_dfr(function(x) read.csv(x) %>% 
+            mutate(filename=gsub(".csv","",basename(x)))) 
 
-# list multiple files
-# create a string for the data path
-data_path <- "Z:/Research Data/Desert/Jornada/Bahada/Phenocam/TwrPhenocam/lists"
-
-# list all the files with file name only, not full path
-noonfilenames <- list.files(path="Z:/Research Data/Desert/Jornada/Bahada/Phenocam/TwrPhenocam/lists",
-                            full.names=FALSE, pattern="noon")
-
-# use purrr:map to read all lists and combine with file names
-# https://clauswilke.com/blog/2016/06/13/reading-and-combining-many-tidy-data-files-in-r/
-noonfiles <- data_frame(filename = noonfilenames) %>% # create a data frame
-  # holding the file names
-  mutate(file_contents = map(filename, ~read.csv(file.path(data_path,.), header=TRUE))) # a new data column
-
-######## ALTERNATIVE TO noonfiles2 ########
-## currently does not work due to brightness factor/numeric problem and headers in middle of files
-# noonfiles <- list.files(path="Z:/Research Data/Desert/Jornada/Bahada/Phenocam/TwrPhenocam/lists",
-#                        full.names=TRUE, pattern="noon") %>%
-#   map_dfr(read.csv, .id="source")
-##########################################
-
+##############ALTERNATIVE CODE FOR STEPS 1 BY 1 ######################### 
+# # list multiple files
+# # create a string for the data path
+# data_path <- "Z:/Research Data/Desert/Jornada/Bahada/Phenocam/TwrPhenocam/lists"
+# 
+# # list all the files with file name only, not full path
+# noonfilenames <- list.files(path="Z:/Research Data/Desert/Jornada/Bahada/Phenocam/TwrPhenocam/lists",
+#                             full.names=FALSE, pattern= "[0-9]{4}_noon_cam[0-9]{1}.txt")
+# 
+# # use purrr:map to read all lists and combine with file names
+# # https://clauswilke.com/blog/2016/06/13/reading-and-combining-many-tidy-data-files-in-r/
+# noonfiles <- data_frame(filename = noonfilenames) %>% # create a data frame
+#   # holding the file names
+#   mutate(file_contents = map(filename, ~read.csv(file.path(data_path,.), header=TRUE))) # a new data column
+############################################
+# Issue resolved and list renamed with _backup
 #### brightness is a factor in some files, check where the issue is
 ## check str of all noon lists
 #noonfiles[1,2] %>%
@@ -44,19 +45,18 @@ noonfiles <- data_frame(filename = noonfilenames) %>% # create a data frame
 # check3<- unnest(noonfiles2[13,2], cols=c(file_contents))
 ####
 
-# unnest only the files which have brightness as a number. 2010 and 2013 files for cam 1 have an issue
-noon <- noonfiles %>%
-  filter(!filename %in% c("2010_noon_cam1.txt" , "2013_noon_cam1.txt"))%>%
-  unnest(., cols=c(file_contents)) 
+# # unnest only the files which have brightness as a number. 2010 and 2013 files for cam 1 have an issue
+# noon <- noonfiles %>%
+#   filter(!filename %in% c("2010_noon_cam1.txt" , "2013_noon_cam1.txt"))%>%
+#   unnest(., cols=c(file_contents)) 
 
 # put timestamp into POSIXct format (date/time format for R)
-noon <- noon %>% # 'pipe command' which allows sequential exectution
+noonfiles <- noonfiles %>% # 'pipe command' which allows sequential exectution
   mutate(timestamp2 = ymd_hms(timestamp),
-         timestamp3 = format(timestamp2, "%Y_%m%d_%H%M%S")) %>%
-  distinct()
+         timestamp3 = format(timestamp2, "%Y_%m%d_%H%M%S"))
 
 #count images
-count.images<- noon %>%
+count.images<- noonfiles %>%
   separate(filename, c(NA, NA, "camera"),"_", extra = "drop", fill = "left", remove = FALSE) %>%
   mutate(date = date(timestamp2))  %>%
   group_by(camera, date) %>%
@@ -71,12 +71,29 @@ ggplot(count.images, aes(date,n))+
 find.multpic<- count.images %>% filter(n >1)
 
 #save info on mult pics
-count.images %>%
-  select(filename, camera,date,n) %>%
-  write.csv(.,"C:/Users/wwbeamon/Desktop/reupheno/files_multpics.csv", row.names = FALSE)
+# count.images %>%
+#   select(filename, camera,date,n) %>%
+#   write.csv(.,"C:/Users/wwbeamon/Desktop/reupheno/files_multpics.csv", row.names = FALSE)
 
+# create list with only 1st noon pic
+noonfiles.1<- noonfiles %>% 
+  mutate(date = date(timestamp2))  %>%
+#  group_by(filename, date) %>%
+  distinct(filename,date,.keep_all = TRUE)
+  
+count.images1<- noonfiles.1 %>%
+  separate(filename, c(NA, NA, "camera"),"_", extra = "drop", fill = "left", remove = FALSE) %>%
+    group_by(camera, date) %>%
+  #mutate(count=count(filename))
+  # count(camera, date)
+  add_tally()
+
+ggplot(count.images1, aes(date,n))+
+  geom_point()+
+  facet_grid(camera~year(date), scales = "free_x")
 
 # save only filepath and timestamp2 for PhenoAnalyzer to read lists
+# on days with mult noon pics save only first pic. 
 # save data as txt by filename using group_walk, use filename in the saved name
 # https://luisdva.github.io/rstats/export-iteratively/
 # https://community.rstudio.com/t/map-write-csv/33292/2
@@ -85,7 +102,7 @@ count.images %>%
 setwd("C:/Users/wwbeamon/Desktop/reupheno/noon_list_phenoanalyzer")
 
 
-noon %>%
+noonfiles.1 %>%
    tidyr::separate(filename,c("filename2",NA),".txt", extra = "drop", fill = "right") %>%
 group_by(filename2)%>%
   select(full.path, timestamp3)%>%
