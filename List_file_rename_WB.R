@@ -92,6 +92,15 @@ ggplot(count.images1, aes(date,n))+
   geom_point()+
   facet_grid(camera~year(date), scales = "free_x")
 
+#graph brightness fo all images
+noonfiles.1 %>%
+separate(filename, c(NA, NA, "camera"),"_", extra = "drop", fill = "left", remove = FALSE) %>%
+ggplot(., aes(date, brightness, color=camera))+
+  geom_line()+
+  facet_grid(camera~year(date), scales = "free_x")
+
+View(noonfiles.1 %>% filter(brightness <75 & filename%in% c("2010_noon_cam1.txt")))
+
 # save only filepath and timestamp2 for PhenoAnalyzer to read lists
 # on days with mult noon pics save only first pic. 
 # save data as txt by filename using group_walk, use filename in the saved name
@@ -102,12 +111,12 @@ ggplot(count.images1, aes(date,n))+
 setwd("C:/Users/wwbeamon/Desktop/reupheno/noon_list_phenoanalyzer")
 
 
-noonfiles.1 %>%
-   tidyr::separate(filename,c("filename2",NA),".txt", extra = "drop", fill = "right") %>%
-group_by(filename2)%>%
-  select(full.path, timestamp3)%>%
-  group_walk(~write.table(.x, file= paste(.y$filename2,
-                                          "PhenoAnalyzer.txt",sep="_"),
-                          sep =',', dec='.', row.names=FALSE, col.names=FALSE,quote=FALSE)) 
+# noonfiles.1 %>%
+#    tidyr::separate(filename,c("filename2",NA),".txt", extra = "drop", fill = "right") %>%
+# group_by(filename2)%>%
+#   select(full.path, timestamp3)%>%
+#   group_walk(~write.table(.x, file= paste(.y$filename2,
+#                                           "PhenoAnalyzer.txt",sep="_"),
+#                           sep =',', dec='.', row.names=FALSE, col.names=FALSE,quote=FALSE)) 
 
 
