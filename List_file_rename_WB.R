@@ -9,6 +9,7 @@ library(dplyr)
 library(ggplot2)
 library(purrr)
 library(tidyr)
+library(readxl)
 
 # set working directory to SEL shared file with file lists
 
@@ -92,14 +93,37 @@ ggplot(count.images1, aes(date,n))+
   geom_point()+
   facet_grid(camera~year(date), scales = "free_x")
 
-#graph brightness fo all images
+#graph brightness of all images
 noonfiles.1 %>%
 separate(filename, c(NA, NA, "camera"),"_", extra = "drop", fill = "left", remove = FALSE) %>%
 ggplot(., aes(date, brightness, color=camera))+
   geom_line()+
-  facet_grid(camera~year(date), scales = "free_x")
+  ylim(c(75,150))+
+facet_grid(camera~year(date), scales = "free_x")
 
-View(noonfiles.1 %>% filter(brightness <75 & filename%in% c("2010_noon_cam1.txt")))
+View(noonfiles.1 %>% filter(brightness >75 & filename%in% c("2018_noon_cam1.txt")))
+
+#save list dark and light images by camera
+noonfiles.1 %>%
+  tidyr::separate(filename, c(NA, NA, "camera"),"_", extra = "drop", fill = "left", remove = FALSE) %>%
+  separate(camera,c("camera2",NA),".txt", extra = "drop", fill = "right") %>%
+  mutate(
+    bright.cat=case_when(brightness < 75~"dark",
+                         brightness > 200~"bright")) %>%
+  filter(!is.na(bright.cat)) %>%
+  group_by(camera2, bright.cat)%>%
+  select(full.path, timestamp3)%>%
+  group_walk(~write.table(.x, file= paste(.y$camera2,.y$bright.cat,
+                                          "PhenoAnalyzer.txt",sep="_"),
+                          sep =',', dec='.', row.names=FALSE, col.names=FALSE,quote=FALSE))
+
+
+#based on photos, 1st excluded bright/dark images, then select 1st pic of noon
+# create list with only 1st noon pic
+noonfiles.2<- noonfiles %>% 
+  mutate(date = date(timestamp2))  %>%
+ filter(brightness >75&brightness<200) %>%
+distinct(filename,date,.keep_all = TRUE)
 
 # save only filepath and timestamp2 for PhenoAnalyzer to read lists
 # on days with mult noon pics save only first pic. 
@@ -111,12 +135,39 @@ View(noonfiles.1 %>% filter(brightness <75 & filename%in% c("2010_noon_cam1.txt"
 setwd("C:/Users/wwbeamon/Desktop/reupheno/noon_list_phenoanalyzer")
 
 
-# noonfiles.1 %>%
-#    tidyr::separate(filename,c("filename2",NA),".txt", extra = "drop", fill = "right") %>%
-# group_by(filename2)%>%
-#   select(full.path, timestamp3)%>%
-#   group_walk(~write.table(.x, file= paste(.y$filename2,
-#                                           "PhenoAnalyzer.txt",sep="_"),
-#                           sep =',', dec='.', row.names=FALSE, col.names=FALSE,quote=FALSE)) 
+noonfiles.2 %>%
+   tidyr::separate(filename,c("filename2",NA),".txt", extra = "drop", fill = "right") %>%
+group_by(filename2)%>%
+  select(full.path, timestamp3)%>%
+  group_walk(~write.table(.x, file= paste(.y$filename2,
+                                          "PhenoAnalyzer.txt",sep="_"),
+                          sep =',', dec='.', row.names=FALSE, col.names=FALSE,quote=FALSE))
 
+#looked through photos & determined processing batches based on camera FOV shift
+
+cam3_batch <- read_xlsx("C:/Users/wwbeamon/Desktop/reupheno/CAM3_batch_notes.xlsx")
+
+#merge cam3_batch with noonfiles.2 & fill batch# between dates.
+
+cam3_batchfiles <- left_join(noonfiles.2,cam3_batch, by=c("filename","date"))
+
+cam3_batchfiles <- cam3_batchfiles  %>% 
+  fill(batch_process,batch_seq)
+
+#exclude -9999 in batch_process & save new list
+
+setwd("C:/Users/wwbeamon/Desktop/reupheno/noon_list_phenoanalyzer_batch")
+
+cam3_batchfiles %>%
+  tidyr::separate(filename, c(NA, NA, "camera"),"_", extra = "drop", fill = "left", remove = FALSE) %>%
+  separate(camera,c("camera2",NA),".txt", extra = "drop", fill = "right") %>%
+  filter(camera2 %in% c("cam3")& batch_process!=-9999) %>%
+  tidyr::separate(filename,c("filename2",NA),".txt", extra = "drop", fill = "right") %>%
+  group_by(filename2, batch_process)%>%
+  select(full.path, timestamp3)%>%
+  group_walk(~write.table(.x, file= paste(.y$filename2,
+                                          "_PhenoAnalyzer_batch_",.y$batch_process,".txt", sep=""),
+                          sep =',', dec='.', row.names=FALSE, col.names=FALSE,quote=FALSE)) 
+
+  
 
