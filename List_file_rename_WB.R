@@ -169,5 +169,18 @@ cam3_batchfiles %>%
                                           "_PhenoAnalyzer_batch_",.y$batch_process,".txt", sep=""),
                           sep =',', dec='.', row.names=FALSE, col.names=FALSE,quote=FALSE)) 
 
+#save all years for cam3 as single batch list
+
+cam3_batchfiles %>%
+  tidyr::separate(filename, c(NA, NA, "camera"),"_", extra = "drop", fill = "left", remove = FALSE) %>%
+  separate(camera,c("camera2",NA),".txt", extra = "drop", fill = "right") %>%
+  filter(camera2 %in% c("cam3")& batch_process!=-9999) %>%
+  tidyr::separate(filename,c("filename2",NA),".txt", extra = "drop", fill = "right") %>%
+  group_by(camera2,batch_process)%>%
+  select(full.path, timestamp3)%>%
+  group_walk(~write.table(.x, file= paste(.y$camera2,
+                                          "_PhenoAnalyzer_batch_",.y$batch_process,".txt", sep=""),
+                          sep =',', dec='.', row.names=FALSE, col.names=FALSE,quote=FALSE)) 
+
   
 
