@@ -70,7 +70,9 @@ cam3.pheno.2010.long %>%
   filter(colorspace %in% c("RGB")) %>%
   ggplot(.,aes(date,value, color=ROI))+
   geom_line()+
-  facet_grid(Index~.,scales = "free_y")
+  facet_grid(Index~.,scales = "free_y")+
+  labs(y="Index value (unitless)", x="Date")+
+  theme_bw(base_size = 10)
 
 
 
