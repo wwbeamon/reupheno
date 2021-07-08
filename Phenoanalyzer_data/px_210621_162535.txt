@@ -1,0 +1,20 @@
+Phenology Analyzer 0.98
+Started on: Jun 21, 2021. 16:25:57
+Processing images from: 
+Number of ROIs: 6
+Name     Type   	   X    Y    W    H
+ROI_01  Rectangle 	  32  172 1531   54
+ROI_02  Rectangle 	  32  172 1531  108
+ROI_03  Rectangle 	  32  172 1531  162
+ROI_04  Rectangle 	  32  172 1531  216
+ROI_05  Rectangle 	  32  172 1531  270
+ROI_06  Rectangle 	  32  172 1531  378
+Processing ROIs individually
+[16:25:57] Processing color space: RGB
+[16:45:56] Elapsed time processing 3335 images: 1199.69 sec.
+[16:45:57] Processing color space: HSV
+[17:13:42] Elapsed time processing 3335 images: 1665.51 sec.
+[17:13:42] Processing color space: L*a*b*
+[17:54:54] Elapsed time processing 3335 images: 2471.74 sec.
+Data save on: C:\Users\wwbeamon\Desktop\reupheno\Phenoanalyzer_data\px_210621_162535.csv
+Finished on: Jun 21, 2021. 17:55:12

@@ -1,0 +1,31 @@
+Phenology Analyzer 0.98
+Started on: Jun 22, 2021. 15:20:13
+Processing images from: 
+Number of ROIs: 17
+Name     Type   	   X    Y    W    H
+ROI_01  Rectangle 	  32  172 1531   54
+ROI_02  Rectangle 	  32  172 1531  108
+ROI_03  Rectangle 	  32  172 1531  162
+ROI_04  Rectangle 	  32  172 1531  216
+ROI_05  Rectangle 	  32  172 1531  270
+ROI_06  Rectangle 	  32  172 1531  378
+ROI_07  Rectangle 	 551  739   65   50
+ROI_08  Rectangle 	1266  738   65   50
+ROI_09  Rectangle 	 488 1116   65   50
+ROI_10  Rectangle 	1069 1096   65   50
+ROI_11  Rectangle 	  72 1046   25   35
+ROI_12  Rectangle 	1514 1074   25   35
+ROI_13  Rectangle 	 803  105   20   15
+ROI_14  Rectangle 	 914  109   20   15
+ROI_15  Rectangle 	1335  109   20   15
+ROI_16  Rectangle 	1409  116   20   15
+ROI_17  Rectangle 	  20   15 1531   30
+Processing ROIs individually
+[15:20:13] Processing color space: RGB
+[15:56:27] Elapsed time processing 3335 images: 2174.65 sec.
+[15:56:27] Processing color space: HSV
+[17:06:01] Elapsed time processing 3335 images: 4173.96 sec.
+[17:06:01] Processing color space: L*a*b*
+[18:07:39] Elapsed time processing 3335 images: 3697.46 sec.
+Data save on: C:\Users\wwbeamon\Desktop\reupheno\Phenoanalyzer_data\CAM3_ROI_wRef.csv
+Finished on: Jun 22, 2021. 18:08:27
